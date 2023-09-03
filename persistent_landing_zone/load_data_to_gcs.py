@@ -3,16 +3,13 @@ import time
 import argparse
 from google.cloud import storage
 
-# Set your Google Cloud Storage bucket name
-bucket_name = "your-bucket-name"
+execution_path = "/home/xavier/Documents/GitHub/data_management_backbone_template"
 
-# Set the path to the folder containing the files you want to upload
-folder_path = "/path/to/your/folder"
 
 def upload_files_to_gcs(bucket_name, folder_path, destination_folder):
     # Initialize the Google Cloud Storage client
     storage_client = storage.Client.from_service_account_json(
-        './../creds.json')
+        f'{execution_path}/creds.json')
 
     # Get the bucket object
     bucket = storage_client.get_bucket(bucket_name)

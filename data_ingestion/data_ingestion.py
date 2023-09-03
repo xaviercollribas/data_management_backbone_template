@@ -2,8 +2,11 @@ import requests
 import os
 import json
 import argparse
+import sys
 
 # ENVIRONMENT VARIABLES
+
+execution_path = ""
 
 def retrieve_data(endpoint):
     response = requests.get(endpoint)
@@ -57,6 +60,8 @@ def main():
             print("Data stored in temporal landing zone correctly")
         else:
             print("There was an error storing the data in the temporal landing zone.")
-        
+    else:
+        sys.exit("There was an error while retrieving data from {API_ENDPOINT}")
+                
 if __name__ == '__main__':
     main()
