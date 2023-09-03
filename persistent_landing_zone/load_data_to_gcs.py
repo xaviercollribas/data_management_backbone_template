@@ -3,7 +3,7 @@ import time
 import argparse
 from google.cloud import storage
 
-execution_path = "/home/xavier/Documents/GitHub/data_management_backbone_template"
+execution_path = os.environ['DMB_EXECUTION_PATH']
 
 
 def upload_files_to_gcs(bucket_name, folder_path, destination_folder):
