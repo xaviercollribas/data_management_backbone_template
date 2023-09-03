@@ -5,10 +5,6 @@ import argparse
 
 # ENVIRONMENT VARIABLES
 
-API_ENDPOINT = ""
-TEMPORAL_LANDING_ZONE_PATH = ""
-FILENAME = ""
-
 def retrieve_data(endpoint):
     response = requests.get(endpoint)
     correct_request = False
@@ -24,7 +20,7 @@ def retrieve_data(endpoint):
         return None
 
 
-def generate_file():
+def generate_file(FILENAME, TEMPORAL_LANDING_ZONE_PATH):
     file_name = f"{FILENAME}.json"
     file_path = os.path.join(TEMPORAL_LANDING_ZONE_PATH, file_name)
     return file_path
@@ -54,7 +50,7 @@ def main():
     response = retrieve_data(API_ENDPOINT)
     if response != None:
         print("Generating file")
-        file_path = generate_file()
+        file_path = generate_file(FILENAME, TEMPORAL_LANDING_ZONE_PATH)
         print(f"Storing file in {file_path}")
         s = store_file(file_path, response.json())
         if s > 0:
