@@ -6,7 +6,7 @@ import sys
 
 # ENVIRONMENT VARIABLES
 
-execution_path = ""
+execution_path = os.environ['DMB_EXECUTION_PATH']
 
 def retrieve_data(endpoint):
     response = requests.get(endpoint)
@@ -29,7 +29,7 @@ def generate_file(FILENAME, TEMPORAL_LANDING_ZONE_PATH):
     return file_path
 
 def store_file(path, content):
-    json_format = json.dumps(content)
+    json_format = json.dumps(content, ensure_ascii=True)
     with open(path, 'w') as file:
         s = file.write(json_format)    
     return s
