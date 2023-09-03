@@ -1,6 +1,7 @@
 import requests
 import os
 import json
+import argparse
 
 # ENVIRONMENT VARIABLES
 
@@ -34,7 +35,21 @@ def store_file(path, content):
         s = file.write(json_format)    
     return s
 
-if __name__ == '__main__':
+
+def main():
+    parser = argparse.ArgumentParser(description="Process command line arguments.")
+    
+    parser.add_argument("--api_endpoint", required=True, help="API endpoint URL")
+    parser.add_argument("--temporal_landing_zone_path", required=True, help="Temporal landing zone path")
+    parser.add_argument("--filename", required=True, help="Filename")
+
+    args = parser.parse_args()
+
+    API_ENDPOINT = args.api_endpoint
+    TEMPORAL_LANDING_ZONE_PATH = args.temporal_landing_zone_path
+    FILENAME = args.filename
+
+
     print(f"Fetching data from {API_ENDPOINT}")
     response = retrieve_data(API_ENDPOINT)
     if response != None:
@@ -46,3 +61,6 @@ if __name__ == '__main__':
             print("Data stored in temporal landing zone correctly")
         else:
             print("There was an error storing the data in the temporal landing zone.")
+        
+if __name__ == '__main__':
+    main()
