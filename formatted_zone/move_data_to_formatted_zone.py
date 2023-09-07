@@ -3,10 +3,11 @@ from google.cloud import storage
 import pandas as pd
 import argparse
 from sqlalchemy import create_engine
+from airflow.models import Variable
 
 execution_path = os.environ['DMB_EXECUTION_PATH']
 
-engine = create_engine('postgresql://xavier:pwd@localhost:5432/formatted_zone')
+engine = create_engine(f'postgresql://{Variable.get("dbuser")}:{Variable.get("formatted_zone_secret")}@{Variable.get("dbhost")}:5432/{Variable.get("fz_dbname")}')
 
 def load_csv_files_to_postgres(storage_client, bucket_name):
    # Initialize GCS client
