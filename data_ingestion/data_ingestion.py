@@ -1,8 +1,10 @@
 import requests
 import os
-import json
+import csv
+import pandas as pd
 import argparse
 import sys
+from io import BytesIO
 
 # ENVIRONMENT VARIABLES
 
@@ -19,20 +21,13 @@ def retrieve_data(endpoint):
 
     if correct_request:
         return response
-    else: 
+    else:
         return None
 
-
 def generate_file(FILENAME, TEMPORAL_LANDING_ZONE_PATH):
-    file_name = f"{FILENAME}.json"
+    file_name = f"{FILENAME}.csv"
     file_path = os.path.join(TEMPORAL_LANDING_ZONE_PATH, file_name)
     return file_path
-
-def store_file(path, content):
-    json_format = json.dumps(content, ensure_ascii=True)
-    with open(path, 'w') as file:
-        s = file.write(json_format)    
-    return s
 
 
 def main():
@@ -48,20 +43,18 @@ def main():
     TEMPORAL_LANDING_ZONE_PATH = args.temporal_landing_zone_path
     FILENAME = args.filename
 
-
     print(f"Fetching data from {API_ENDPOINT}")
     response = retrieve_data(API_ENDPOINT)
-    if response != None:
-        print("Generating file")
+    bytes_io = BytesIO(response.content)
+    df = pd.read_csv(bytes_io)
+    if response is not None:
+        print("Generating CSV file")
         file_path = generate_file(FILENAME, TEMPORAL_LANDING_ZONE_PATH)
         print(f"Storing file in {file_path}")
-        s = store_file(file_path, response.json())
-        if s > 0:
-            print("Data stored in temporal landing zone correctly")
-        else:
-            print("There was an error storing the data in the temporal landing zone.")
+        df.to_csv(file_path)
+        print("Data stored in temporal landing zone correctly as CSV")
     else:
-        sys.exit("There was an error while retrieving data from {API_ENDPOINT}")
-                
+        sys.exit(f"There was an error while retrieving data from {API_ENDPOINT}")
+
 if __name__ == '__main__':
     main()
