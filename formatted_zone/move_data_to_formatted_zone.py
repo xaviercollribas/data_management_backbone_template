@@ -6,7 +6,7 @@ from sqlalchemy import create_engine
 
 execution_path = os.environ['DMB_EXECUTION_PATH']
 
-engine = create_engine('postgresql://xavier:garfield30@localhost:5432/formatted_zone')
+engine = create_engine('postgresql://xavier:pwd@localhost:5432/formatted_zone')
 
 def load_csv_files_to_postgres(storage_client, bucket_name):
    # Initialize GCS client
