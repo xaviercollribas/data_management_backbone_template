@@ -8,13 +8,11 @@ from airflow.models import Variable
 formatted_zone_settings = {
     "dbname": Variable.get("fz_dbname"),
     "user": Variable.get("dbuser"),
-    "password": os.environ['FZ_PASSWORD'],
+    "password": Variable.get("formatted_zone_secret"),
     "host": Variable.get("dbhost"),
 }
 
 
-
-engine = create_engine(f'postgresql://{Variable.get("dbuser")}:{os.environ['TZ_PASSWORD']}@{Variable.get("dbhost")}:5432/{Variable.get("fz_dbname")}')
 
 
 def remove_duplicates(df):
@@ -24,7 +22,7 @@ def remove_duplicates(df):
 def remove_nulls(df):
     return df.dropna()
 
-def load_to_trusted_zone(table_name, df):
+def load_to_trusted_zone(engine, table_name, df):
     df.to_sql(table_name, engine, if_exists='replace', index=False) 
 
 def retrieve_table_names(db_settings):
@@ -85,14 +83,15 @@ def main():
     dataframes = load_tables_into_dataframes(formatted_zone_settings, table_names)
     
     combined_dataframes = combine_tables_into_dfs(dataframes, table_groups)
+    engine = create_engine(f'postgresql://{Variable.get("dbuser")}:{Variable.get("trusted_zone_secret")}@{Variable.get("dbhost")}:5432/{Variable.get("tz_dbname")}')
 
-    # Access and manipulate the combined dataframes as needed
+    # Iterate each combined dataframe
     for name_without_timestamp, df in combined_dataframes.items():
         print(f"Combined DataFrame for Table Name: {name_without_timestamp}")
         df = remove_duplicates(df)
         df = remove_nulls(df)
-        load_to_trusted_zone(name_without_timestamp, df)
-        print(df.head())  # Display the first few rows of each combined DataFrame
+        load_to_trusted_zone(engine, name_without_timestamp, df)
+        print(df.head()) 
 
 if __name__ == "__main__":
     main()

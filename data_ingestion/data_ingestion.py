@@ -1,6 +1,5 @@
 import requests
 import os
-import csv
 import pandas as pd
 import argparse
 import sys
@@ -31,8 +30,9 @@ def generate_file(FILENAME, TEMPORAL_LANDING_ZONE_PATH):
 
 
 def main():
+
+    # ARGUMENT PARSER FOR THE CLI
     parser = argparse.ArgumentParser(description="Process command line arguments.")
-    
     parser.add_argument("--api_endpoint", required=True, help="API endpoint URL")
     parser.add_argument("--temporal_landing_zone_path", required=True, help="Temporal landing zone path")
     parser.add_argument("--filename", required=True, help="Filename")
@@ -43,6 +43,7 @@ def main():
     TEMPORAL_LANDING_ZONE_PATH = args.temporal_landing_zone_path
     FILENAME = args.filename
 
+    # RETRIEVE DATA FROM API IN A CSV FORMAT AND LOAD IT IN A DATAFRAME
     print(f"Fetching data from {API_ENDPOINT}")
     response = retrieve_data(API_ENDPOINT)
     bytes_io = BytesIO(response.content)
@@ -50,7 +51,7 @@ def main():
     if response is not None:
         print("Generating CSV file")
         file_path = generate_file(FILENAME, TEMPORAL_LANDING_ZONE_PATH)
-        print(f"Storing file in {file_path}")
+        print(f"Storing file in {file_path}")   
         df.to_csv(file_path)
         print("Data stored in temporal landing zone correctly as CSV")
     else:
