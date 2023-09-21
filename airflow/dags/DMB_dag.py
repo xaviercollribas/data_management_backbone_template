@@ -3,6 +3,9 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.operators.bash import BashOperator
 from airflow.operators.empty import EmptyOperator
+from airflow.decorators.task_group import task_group
+from airflow.models import Variable
+
 from pathlib import Path
 import sys, os
 
@@ -19,22 +22,11 @@ default_args = {
     'retry_delay': timedelta(minutes=5)
 }
 
-with DAG(
-        'Data_Management_Backbone', # Name of the DAG / workflow
-        default_args=default_args,
-        catchup=False,
-        schedule='*/15 * * * *' 
-) as dag:
-    # This operator does nothing. 
-    start_task = EmptyOperator(
-        task_id='start_task', # The name of the sub-task in the workflow.
-        dag=dag # When using the "with Dag(...)" syntax you could leave this out
-    )
-
-    # With the PythonOperator you can run a python function.
+@task_group(group_id='Data_Ingestion')
+def tg1():
     data_ingestion_1 = BashOperator(
         task_id='data_ingestion_1',
-        bash_command=f"python3 {execution_path}/data_ingestion/data_ingestion.py --api_endpoint https://opendata.l-h.cat/resource/qjcy-xqxx.csv --temporal_landing_zone_path {execution_path}/temporal_landing_zone --filename BiciBox"
+        bash_command=f"python3 {execution_path}/data_ingestion/data_ingestion.py --api_endpoint https://opendata.l-h.cat/resource/qjcy-xqxx.csv --temporal_landing_zone_path {execution_path}/temporal_landing_zone --filename bicibox"
     )
 
     data_ingestion_2 = BashOperator(
@@ -46,6 +38,20 @@ with DAG(
         task_id='data_ingestion_3',
         bash_command=f"python3 {execution_path}/data_ingestion/data_ingestion.py --api_endpoint https://opendata.l-h.cat/resource/csm2-emdb.csv --temporal_landing_zone_path {execution_path}/temporal_landing_zone --filename qualitat_aire_hp"
     )    
+
+    [data_ingestion_1 >> data_ingestion_2 >> data_ingestion_3]
+
+with DAG(
+        'Data_Management_Backbone', # Name of the DAG / workflow
+        default_args=default_args,
+        catchup=False,
+        schedule='*/15 * * * *' 
+) as dag:
+    # This operator does nothing. 
+    start_task = BashOperator(
+        task_id='set_envs', # The name of the sub-task in the workflow.
+        bash_command=f"source {execution_path}/startup.sh {Variable.get('trusted_zone_secret')} {Variable.get('dbhost')} {Variable.get('dbuser')} {Variable.get('ez_dbname')}"
+    )
 
     persistent_landing_zone = BashOperator(
         task_id='persistent_landing_zone',
@@ -62,7 +68,21 @@ with DAG(
         bash_command=f"python3 {execution_path}/trusted_zone/trusted_zone.py"
     )
 
+    exploitation_zone = BashOperator(
+        task_id='exploitation_zone',
+        bash_command=f"python3 {execution_path}/exploitation_zone/exploitation_zone.py"
+    )    
+
+    dbt_exploitation_zone = BashOperator(
+        task_id='dbt_exploitation_zone',
+        env={'ez_host': '{{var.value.dbhost}}', 'ez_user': '{{var.value.dbuser}}', 'explotation_zone_creds': '{{var.value.formatted_zone_secret}}', 'ez_dbname': '{{var.value.ez_dbname}}'},
+        bash_command=f"cd {execution_path}/dbt/exploitation_zone && {Variable.get('dbt_instalation_path')}/bin/dbt run -t prod --profiles-dir {execution_path}/dbt/"
+    )   
+
+
+    print(Variable.get('dbhost'))
     # Define the order in which the tasks are supposed to run
     # You can also define paralell tasks by using an array 
     # I.e. task1 >> [task2a, task2b] >> task3
-    start_task >> [data_ingestion_1, data_ingestion_2, data_ingestion_3] >> persistent_landing_zone >> formatted_zone >> trusted_zone
+    start_task >> tg1() >> persistent_landing_zone >> formatted_zone >> trusted_zone >> exploitation_zone >> dbt_exploitation_zone
+
