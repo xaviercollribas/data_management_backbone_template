@@ -2,15 +2,20 @@ import os
 import time
 import argparse
 from google.cloud import storage
+from google.oauth2 import service_account
+from airflow.models import Variable
+import json
+
 
 execution_path = os.environ['DMB_EXECUTION_PATH']
 
 
 def upload_files_to_gcs(bucket_name, folder_path, destination_folder):
     # Initialize the Google Cloud Storage client
-    storage_client = storage.Client.from_service_account_json(
-        f'{execution_path}/creds.json')
-
+    storage_credentials = service_account.Credentials.from_service_account_info(json.loads(Variable.get("google_cloud_secret")))
+    storage_client = storage.Client(credentials=storage_credentials)
+        
+    print(storage_client)
     # Get the bucket object
     bucket = storage_client.get_bucket(bucket_name)
 

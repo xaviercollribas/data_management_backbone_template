@@ -4,12 +4,14 @@ import pandas as pd
 import argparse
 from sqlalchemy import create_engine
 from airflow.models import Variable
+from google.oauth2 import service_account
+import json
 
 execution_path = os.environ['DMB_EXECUTION_PATH']
 
 engine = create_engine(f'postgresql://{Variable.get("dbuser")}:{Variable.get("formatted_zone_secret")}@{Variable.get("dbhost")}:5432/{Variable.get("fz_dbname")}')
 
-def load_csv_files_to_postgres(storage_client, bucket_name):
+def load_file_to_postgres(storage_client, bucket_name):
    # Initialize GCS client
    bucket = storage_client.get_bucket(bucket_name)
 
@@ -39,8 +41,9 @@ def main():
     parser.add_argument("--bucket", required=True, help="GCS bucket name")
     args = parser.parse_args()
 
-    storage_client = storage.Client.from_service_account_json(f'{execution_path}/creds.json')
-    load_csv_files_to_postgres(storage_client, args.bucket) 
+    storage_credentials = service_account.Credentials.from_service_account_info(json.loads(Variable.get("google_cloud_secret")))
+    storage_client = storage.Client(credentials=storage_credentials)
+    load_file_to_postgres(storage_client, args.bucket) 
 
 if __name__ == "__main__":
     main()
