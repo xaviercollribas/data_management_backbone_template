@@ -65,7 +65,7 @@ with DAG(
     dbt_exploitation_zone = BashOperator(
         task_id='dbt_exploitation_zone',
         env={'ez_host': '{{var.value.dbhost}}', 'ez_user': '{{var.value.dbuser}}', 'explotation_zone_creds': '{{var.value.formatted_zone_secret}}', 'ez_dbname': '{{var.value.ez_dbname}}'},
-        bash_command=f"cd {execution_path}/dbt/exploitation_zone && {Variable.get('dbt_instalation_path')}/bin/dbt run -t prod --profiles-dir {execution_path}/dbt/"
+        bash_command=f"cd {execution_path}/dbt/exploitation_zone && {Variable.get('dbt_instalation_path')} run -t prod --profiles-dir {execution_path}/dbt/"
     )   
 
 

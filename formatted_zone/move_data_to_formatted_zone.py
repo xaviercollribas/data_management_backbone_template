@@ -7,7 +7,7 @@ from airflow.models import Variable
 from google.oauth2 import service_account
 import json
 
-execution_path = os.environ['DMB_EXECUTION_PATH']
+execution_path = Variable.get("execution_path")
 
 engine = create_engine(f'postgresql://{Variable.get("dbuser")}:{Variable.get("formatted_zone_secret")}@{Variable.get("dbhost")}:5432/{Variable.get("fz_dbname")}')
 

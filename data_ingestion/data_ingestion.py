@@ -4,10 +4,11 @@ import pandas as pd
 import argparse
 import sys
 from io import BytesIO
+from airflow.models import Variable
 
 # ENVIRONMENT VARIABLES
 
-execution_path = os.environ['DMB_EXECUTION_PATH']
+execution_path = Variable.get("execution_path")
 
 def retrieve_data(endpoint):
     response = requests.get(endpoint)
