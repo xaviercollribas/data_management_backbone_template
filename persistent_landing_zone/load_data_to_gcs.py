@@ -7,7 +7,7 @@ from airflow.models import Variable
 import json
 
 
-execution_path = os.environ['DMB_EXECUTION_PATH']
+execution_path = Variable.get("execution_path")
 
 
 def upload_files_to_gcs(bucket_name, folder_path, destination_folder):
