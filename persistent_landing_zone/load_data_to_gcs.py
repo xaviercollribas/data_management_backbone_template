@@ -23,24 +23,25 @@ def upload_files_to_gcs(bucket_name, folder_path, destination_folder):
     files_to_upload = os.listdir(folder_path)
 
     for file_name in files_to_upload:
-        # File with naming convention
-        timestamp = int(time.time())
-        new_file_name = f"{os.path.splitext(file_name)[0]}_{timestamp}{os.path.splitext(file_name)[1]}"
+        if file_name != 'README.md':
+            # File with naming convention
+            timestamp = int(time.time())
+            new_file_name = f"{os.path.splitext(file_name)[0]}_{timestamp}{os.path.splitext(file_name)[1]}"
 
-        # Specify the full path for both local and GCS files
-        local_file_path = os.path.join(folder_path, file_name)
-        gcs_file_path = f"{destination_folder}/{new_file_name}" 
+            # Specify the full path for both local and GCS files
+            local_file_path = os.path.join(folder_path, file_name)
+            gcs_file_path = f"{destination_folder}/{new_file_name}" 
 
-        # Upload the file to Google Cloud Storage
-        blob = bucket.blob(gcs_file_path)
-        blob.upload_from_filename(local_file_path)
+            # Upload the file to Google Cloud Storage
+            blob = bucket.blob(gcs_file_path)
+            blob.upload_from_filename(local_file_path)
 
-        print(f"Uploaded {local_file_path} to GCS as {gcs_file_path}")
+            print(f"Uploaded {local_file_path} to GCS as {gcs_file_path}")
 
-        if blob.exists():
-            # Remove the local file
-            os.remove(local_file_path)
-            print(f"Removed {local_file_path} from the local folder")
+            if blob.exists():
+                # Remove the local file
+                os.remove(local_file_path)
+                print(f"Removed {local_file_path} from the local folder")
 
 
 
